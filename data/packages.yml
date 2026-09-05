@@ -1,0 +1,11 @@
+packages:
+  tmux:     { brew: tmux,          apt: tmux,         pacman: tmux }
+  delta:    { brew: git-delta,     apt: git-delta,    pacman: git-delta }
+  codex:    { brew: codex,         apt: codex,        pacman: codex }
+  neovim:   { brew: neovim,        apt: neovim,       pacman: neovim }
+  opencode: { brew: anomalyco/tap/opencode }
+  fzf:      { brew: fzf,           apt: fzf,          pacman: fzf }
+  ripgrep:  { brew: ripgrep,       apt: ripgrep,      pacman: ripgrep }
+  bat:      { brew: bat,           apt: bat,          pacman: bat }
+  eza:      { brew: eza,           apt: eza,          pacman: eza }
+  zoxide:   { brew: zoxide,        apt: zoxide,       pacman: zoxide }
