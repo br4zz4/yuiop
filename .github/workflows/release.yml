@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+      - run: go test ./...
+
+  build:
+    name: Build ${{ matrix.target }}
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - darwin_amd64
+          - darwin_arm64
+          - linux_amd64
+          - linux_arm64
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      - name: Extract version from tag
+        id: version
+        run: echo "bare=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        env:
+          PLATFORM: ${{ matrix.target }}
+        run: |
+          os="${PLATFORM%%_*}"
+          arch="${PLATFORM##*_}"
+          GOOS="$os" GOARCH="$arch" go build -o "yuiop_${{ steps.version.outputs.bare }}_${os}_${arch}" ./cmd/yuiop
+
+      - uses: actions/upload-artifact@v4.6.2
+        with:
+          name: yuiop-${{ matrix.target }}
+          path: yuiop_*
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4.3.0
+        with:
+          path: artifacts
+
+      - name: Flatten binaries
+        run: |
+          mkdir dist
+          find artifacts -type f -name 'yuiop_*' -exec mv {} dist/ \;
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          make_latest: true
+          files: dist/yuiop_*
+
+      - name: Update latest tag
+        run: |
+          git tag -f latest
+          git push origin latest --force
