@@ -93,6 +93,7 @@ flagship, não o único.
 | Q6 | Instalação | **(b) install.sh (GitHub content) + `go install`** — nunca via brew |
 | Q7 | Escopo de provedores | **(a) brew/apt/pacman**, interface genérica aberta, system packages só |
 | Q9 | Fonte da tabela | **(b) mantida à mão no repo** (`data/packages.yml`); desconhecido → erro claro |
+| Q10 | Integração no qwert | Refactor do **qwert-recipes** para usar **apenas o yuiop** — qwert chama o canonical, yuiop resolve |
 | Q13 | Schema do config | Só `platform`. Sem aliases, sem seção `providers` |
 | Q14 | Cask | **(c) sem cask na v1** |
 
@@ -232,8 +233,9 @@ Exit codes (documentados em `docs/CONTRACT.md`):
 
 ### 7. Integração no qwert
 
-- `src/adapters/` do qwert: os recipes *package-kind* passam a delegar para o binário
-  `yuiop <verb> <canonical> --json` via `Command`.
+- **Refactor do `qwert-recipes`** para usar apenas o yuiop: os recipes *package-kind*
+  passam a delegar para o binário `yuiop <verb> <canonical> --json` via `Command`
+  (decisão Q10 — executado no repo qwert).
 - qwert não resolve mais nomes: chama o canonical e o yuiop resolve. Recipes `qwert/custom`
   (incluindo casks e setups GUI) continuam no qwert.
 - `CLAUDE.md` → `AGENTS.md` no repo qwert (documentação para agentes), com nota da camada yuiop.
