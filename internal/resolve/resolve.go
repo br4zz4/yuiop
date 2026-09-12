@@ -35,3 +35,17 @@ func (t *Table) Resolve(canonical, provider string) (string, bool) {
 	}
 	return pkg, true
 }
+
+// ResolveOrSelf returns the per-provider package name, falling back to the
+// canonical name itself when there is no mapping for the provider. AUR is
+// the main user: `yuiop --platform aur install opencode-bin` should install
+// the AUR package named `opencode-bin` directly, without a catalog entry.
+func (t *Table) ResolveOrSelf(canonical, provider string) (string, bool) {
+	if pkg, ok := t.Resolve(canonical, provider); ok {
+		return pkg, true
+	}
+	if provider == "aur" {
+		return canonical, true
+	}
+	return "", false
+}

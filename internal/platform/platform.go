@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var supported = []string{"brew", "apt", "pacman"}
+var supported = []string{"brew", "apt", "pacman", "aur"}
 
 // Validate returns the platform name if it is supported.
 func Validate(name string) (string, error) {

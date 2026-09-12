@@ -3,7 +3,7 @@ package platform
 import "testing"
 
 func TestValidate(t *testing.T) {
-	for _, ok := range []string{"brew", "apt", "pacman"} {
+	for _, ok := range []string{"brew", "apt", "pacman", "aur"} {
 		if _, err := Validate(ok); err != nil {
 			t.Fatalf("Validate(%q) = %v; want nil", ok, err)
 		}

@@ -122,7 +122,7 @@ func (a *app) requireOne(cmd string, args []string, fn func(string) int) int {
 }
 
 func (a *app) install(canonical string) int {
-	pkg, ok := a.table.Resolve(canonical, a.provider.Name())
+	pkg, ok := a.table.ResolveOrSelf(canonical, a.provider.Name())
 	if !ok {
 		fmt.Fprintf(a.stderr, "yuiop: no knowledge of package '%s'\n", canonical)
 		return ExitNotFound
@@ -145,7 +145,7 @@ func (a *app) install(canonical string) int {
 }
 
 func (a *app) remove(canonical string) int {
-	pkg, ok := a.table.Resolve(canonical, a.provider.Name())
+	pkg, ok := a.table.ResolveOrSelf(canonical, a.provider.Name())
 	if !ok {
 		fmt.Fprintf(a.stderr, "yuiop: no knowledge of package '%s'\n", canonical)
 		return ExitNotFound
@@ -194,7 +194,7 @@ func (a *app) upgrade(args []string) int {
 }
 
 func (a *app) upgradeOne(canonical string) int {
-	pkg, ok := a.table.Resolve(canonical, a.provider.Name())
+	pkg, ok := a.table.ResolveOrSelf(canonical, a.provider.Name())
 	if !ok {
 		fmt.Fprintf(a.stderr, "yuiop: no knowledge of package '%s'\n", canonical)
 		return ExitNotFound
@@ -243,7 +243,7 @@ func (a *app) search(term string) int {
 }
 
 func (a *app) info(canonical string) int {
-	pkg, ok := a.table.Resolve(canonical, a.provider.Name())
+	pkg, ok := a.table.ResolveOrSelf(canonical, a.provider.Name())
 	if !ok {
 		fmt.Fprintf(a.stderr, "yuiop: no knowledge of package '%s'\n", canonical)
 		return ExitNotFound
@@ -262,7 +262,7 @@ func (a *app) info(canonical string) int {
 }
 
 func (a *app) status(canonical string) int {
-	pkg, ok := a.table.Resolve(canonical, a.provider.Name())
+	pkg, ok := a.table.ResolveOrSelf(canonical, a.provider.Name())
 	if !ok {
 		fmt.Fprintf(a.stderr, "yuiop: no knowledge of package '%s'\n", canonical)
 		return ExitNotFound

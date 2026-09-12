@@ -3,7 +3,7 @@ packages:
   delta:    { brew: git-delta,     apt: git-delta,    pacman: git-delta }
   codex:    { brew: codex,         apt: codex,        pacman: codex }
   neovim:   { brew: neovim,        apt: neovim,       pacman: neovim }
-  opencode: { brew: anomalyco/tap/opencode }
+  opencode: { brew: anomalyco/tap/opencode, pacman: opencode }
   fzf:      { brew: fzf,           apt: fzf,          pacman: fzf }
   ripgrep:  { brew: ripgrep,       apt: ripgrep,      pacman: ripgrep }
   bat:      { brew: bat,           apt: bat,          pacman: bat }

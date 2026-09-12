@@ -29,6 +29,8 @@ func For(name string, stdin io.Reader, stdout, stderr io.Writer) (Provider, erro
 		return &Apt{stdin: stdin, stdout: stdout, stderr: stderr}, nil
 	case "pacman":
 		return &Pacman{stdin: stdin, stdout: stdout, stderr: stderr}, nil
+	case "aur":
+		return &Aur{stdin: stdin, stdout: stdout, stderr: stderr}, nil
 	}
 	return nil, fmt.Errorf("no provider for %q", name)
 }
