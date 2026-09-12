@@ -47,7 +47,7 @@ jobs:
         run: |
           os="${PLATFORM%%_*}"
           arch="${PLATFORM##*_}"
-          GOOS="$os" GOARCH="$arch" go build -o "yuiop_${{ steps.version.outputs.bare }}_${os}_${arch}" ./cmd/yuiop
+          GOOS="$os" GOARCH="$arch" go build -ldflags "-X github.com/br4zz4/yuiop/internal/cli.Version=${{ steps.version.outputs.bare }}" -o "yuiop_${{ steps.version.outputs.bare }}_${os}_${arch}" ./cmd/yuiop
 
       - uses: actions/upload-artifact@v4.6.2
         with:

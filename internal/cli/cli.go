@@ -5,14 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/br4zz4/yuiop"
 	"github.com/br4zz4/yuiop/internal/config"
 	"github.com/br4zz4/yuiop/internal/platform"
 	"github.com/br4zz4/yuiop/internal/provider"
 	"github.com/br4zz4/yuiop/internal/resolve"
+	"github.com/br4zz4/yuiop/internal/self"
 )
 
 // Exit codes, documented in docs/CONTRACT.md.
@@ -23,7 +26,9 @@ const (
 	ExitNotFound = 3
 )
 
-const Version = "0.1.0"
+// Version is set at build time via ldflags (e.g. v0.2.1); "dev" when built
+// locally without ldflags.
+var Version = "dev"
 
 type options struct {
 	jsonOut      bool
@@ -105,12 +110,70 @@ func (a *app) dispatch(cmd string, args []string) int {
 		return a.requireOne(cmd, args, a.status)
 	case "platform":
 		return a.platform(args)
+	case "self":
+		return a.self(args)
 	case "version":
 		fmt.Fprintf(a.stdout, "yuiop %s\n", Version)
 		return ExitOK
 	}
 	usage(a.stderr)
 	return ExitUsage
+}
+
+// self handles `yuiop self upgrade` — replaces the running binary with the
+// latest release. `yuiop self version` prints the current version.
+func (a *app) self(args []string) int {
+	if len(args) != 1 {
+		fmt.Fprintf(a.stderr, "yuiop: self requires one subcommand: upgrade\n")
+		return ExitUsage
+	}
+	switch args[0] {
+	case "upgrade":
+		return a.selfUpgrade()
+	case "version":
+		fmt.Fprintf(a.stdout, "yuiop %s\n", Version)
+		return ExitOK
+	}
+	fmt.Fprintf(a.stderr, "yuiop: unknown self subcommand %q (use: upgrade)\n", args[0])
+	return ExitUsage
+}
+
+func (a *app) selfUpgrade() int {
+	client := &http.Client{Timeout: 60 * time.Second}
+
+	version, err := self.FetchLatestVersion(client)
+	if err != nil {
+		fmt.Fprintf(a.stderr, "yuiop: %v\n", err)
+		return ExitFailure
+	}
+
+	// Already on the latest release — nothing to do.
+	if strings.TrimPrefix(Version, "v") == strings.TrimPrefix(version, "v") {
+		fmt.Fprintf(a.stdout, "yuiop: already up to date (%s)\n", version)
+		return ExitOK
+	}
+	fmt.Fprintf(a.stdout, "yuiop: latest release: %s (current %s)\n", version, Version)
+
+	target, err := self.DetectTarget()
+	if err != nil {
+		fmt.Fprintf(a.stderr, "yuiop: %v\n", err)
+		return ExitFailure
+	}
+
+	tmp, err := self.DownloadTo(version, target, client)
+	if err != nil {
+		fmt.Fprintf(a.stderr, "yuiop: %v\n", err)
+		return ExitFailure
+	}
+	defer os.Remove(tmp)
+
+	exe, err := self.ReplaceExecutable(tmp)
+	if err != nil {
+		fmt.Fprintf(a.stderr, "yuiop: %v\n", err)
+		return ExitFailure
+	}
+	fmt.Fprintf(a.stdout, "yuiop: upgraded to %s (%s)\n", version, exe)
+	return ExitOK
 }
 
 func (a *app) requireOne(cmd string, args []string, fn func(string) int) int {
@@ -365,6 +428,7 @@ Commands:
   info <pkg>        Show the resolved name and install status
   status <pkg>      Report whether a package is installed (machine contract)
   platform [<name>] Show the effective platform, or persist an override
+  self upgrade      Update yuiop itself to the latest release
   version           Print the yuiop version
 `)
 }
