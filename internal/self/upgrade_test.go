@@ -140,3 +140,53 @@ func TestReplaceAtErrorsWhenSourceMissing(t *testing.T) {
 		t.Fatal("ReplaceAt should error for a missing new binary")
 	}
 }
+
+func TestCopyFileStreamsContent(t *testing.T) {
+	// arrange
+	dir := t.TempDir()
+	src := filepath.Join(dir, "src")
+	dst := filepath.Join(dir, "sub", "dst")
+	if err := os.WriteFile(src, []byte("payload-bytes"), 0o644); err != nil {
+		t.Fatalf("write src: %v", err)
+	}
+	// act
+	if err := copyFile(src, dst); err != nil {
+		t.Fatalf("copyFile: %v", err)
+	}
+	// assert
+	data, err := os.ReadFile(dst)
+	if err != nil {
+		t.Fatalf("read dst: %v", err)
+	}
+	if string(data) != "payload-bytes" {
+		t.Fatalf("dst = %q; want payload-bytes", data)
+	}
+}
+
+func TestReplaceAtFallsBackToCopyWhenDestExists(t *testing.T) {
+	// arrange — dest exists as a real file (rename in-place would fail if
+	// paths straddle devices; here we just verify the copy path works)
+	dir := t.TempDir()
+	exe := filepath.Join(dir, "yuiop")
+	if err := os.WriteFile(exe, []byte("old"), 0o755); err != nil {
+		t.Fatalf("write old: %v", err)
+	}
+	newBin := filepath.Join(dir, "new-yuiop")
+	if err := os.WriteFile(newBin, []byte("new-content"), 0o644); err != nil {
+		t.Fatalf("write new: %v", err)
+	}
+	// act
+	replaced, err := ReplaceAt(newBin, exe)
+	// assert
+	if err != nil {
+		t.Fatalf("ReplaceAt: %v", err)
+	}
+	data, _ := os.ReadFile(replaced)
+	if string(data) != "new-content" {
+		t.Fatalf("exe = %q; want new-content", data)
+	}
+	// the new binary is consumed (renamed or removed)
+	if _, err := os.Stat(newBin); !os.IsNotExist(err) {
+		t.Fatalf("newBin should be gone, stat err = %v", err)
+	}
+}

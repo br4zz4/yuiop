@@ -132,9 +132,41 @@ func ReplaceExecutable(newBin string) (string, error) {
 }
 
 // ReplaceAt atomically moves newBin over exePath. Split out for testability.
+// Falls back to copy+remove when rename fails — e.g. EXDEV (cross-device link)
+// when /tmp is tmpfs and the binary lives on a real disk.
 func ReplaceAt(newBin, exePath string) (string, error) {
-	if err := os.Rename(newBin, exePath); err != nil {
+	if err := os.Rename(newBin, exePath); err == nil {
+		return exePath, nil
+	}
+	if err := copyFile(newBin, exePath); err != nil {
 		return "", fmt.Errorf("replace %s: %w", exePath, err)
 	}
+	if err := os.Chmod(exePath, 0o755); err != nil {
+		return "", fmt.Errorf("replace %s: %w", exePath, err)
+	}
+	os.Remove(newBin)
 	return exePath, nil
+}
+
+// copyFile streams src onto dst (truncating dst), creating parent dirs.
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	if parent := filepath.Dir(dst); parent != "" && parent != "." {
+		if err := os.MkdirAll(parent, 0o755); err != nil {
+			return err
+		}
+	}
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	if _, err := io.Copy(out, in); err != nil {
+		return err
+	}
+	return nil
 }
