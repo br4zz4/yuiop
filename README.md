@@ -25,15 +25,15 @@ for anyone — qwert is the flagship consumer, not the only one.
 ## Install
 
 ```sh
-# Binary into ~/.local/bin (no sudo)
+# Binary into ~/.local/bin (no sudo) — adds PATH instructions if needed
 curl -fsSL https://raw.githubusercontent.com/br4zz4/yuiop/main/install.sh | bash
 
 # ...or, if you already use Go
-go install github.com/br4zz4/yuiop@latest
+go install github.com/br4zz4/yuiop/cmd/yuiop@latest
 ```
 
-> `yuiop upgrade` upgrades *packages*, never itself. Updating the `yuiop` binary belongs
-> to the channel that installed it.
+> `yuiop upgrade` upgrades *packages*, never itself. To update the `yuiop`
+> binary, run `yuiop self upgrade`.
 
 ## Usage
 
