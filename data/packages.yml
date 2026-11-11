@@ -5,6 +5,7 @@ packages:
   neovim:   { brew: neovim,        apt: neovim,       pacman: neovim }
   opencode: { brew: anomalyco/tap/opencode, pacman: opencode }
   fzf:      { brew: fzf,           apt: fzf,          pacman: fzf }
+  lazydocker: { brew: lazydocker, pacman: lazydocker }
   ripgrep:  { brew: ripgrep,       apt: ripgrep,      pacman: ripgrep }
   bat:      { brew: bat,           apt: bat,          pacman: bat }
   eza:      { brew: eza,           apt: eza,          pacman: eza }
